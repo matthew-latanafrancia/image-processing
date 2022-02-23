@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <sys/time.h>
 #include <pthread.h>
@@ -86,6 +87,38 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
 	PPMPixel *img;
 	
 
+  FILE* fp;
+    fp = fopen(filename, "r");
+    
+    if(fp == NULL)
+    {
+      printf("NULL ERROR\n");
+	    exit(1);
+    }
+
+    printf("Opening file success\n");
+
+    char input;
+    int counter = 0;
+    //read file contents
+    /*while(fread(&input, sizeof(char), 1, fp) && counter < 100){
+      printf("%c", input);
+      counter++;
+    }*/
+    char string[2];
+    for(int i = 0; i < 2; i++)
+    {
+      fread(&input, sizeof(char), 1, fp);
+      string[i] = input;
+    }
+    if(strcmp(string, "P6") != 0)
+    {
+      printf("Error, file does not match compatible type\n");
+      exit(1);
+    }
+
+    printf("%d\n", counter);
+
 	//read image format
 
 	//check the image format by reading the first two characters in filename and compare them to P6.
@@ -148,28 +181,9 @@ int main(int argc, char *argv[])
     
     if(argc < 2)
     {
-        printf("Usage ./imath filename\n");
+      printf("Usage ./imath filename\n");
     }
-    
-        FILE* fp;
-    fp = fopen(argv[1], "r");
-    
-    if(fp == NULL)
-    {
-        printf("NULL ERROR\n");
-	exit(1);
-    }
+    readImage(argv[1], &w, &h);
 
-    printf("Opening file success\n");
-
-    char input;
-    int counter = 0;
-
-    //read file contents
-    while(fread(&input, sizeof(char), 1, fp) && counter < 100){
-      printf("%c", input);
-      counter++;
-    }
-    printf("%d\n", counter);
 	return 0;
 }
