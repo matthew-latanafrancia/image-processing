@@ -139,7 +139,16 @@ int main(int argc, char *argv[])
 	//load the image into the buffer
     unsigned long int w, h;
     double elapsedTime = 0.0;
-
-	
+    if(argc < 2)
+    {
+        printf("Usage ./imath filename\n");
+    }
+	FILE* fp;
+    fp = fopen(argv[1], "r");
+    if(fp == NULL)
+    {
+        printf("NULL ERROR\n");
+    }
+    printf("Success\n");
 	return 0;
 }
