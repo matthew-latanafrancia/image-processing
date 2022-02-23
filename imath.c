@@ -137,18 +137,39 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
 int main(int argc, char *argv[])
 {
 	//load the image into the buffer
+  /*
+   * Things we need to get:
+   * 1. "Magic" number (P6)
+   * 2. Width and heigh of the ppm
+   * 3. 
+   */
     unsigned long int w, h;
     double elapsedTime = 0.0;
+    
     if(argc < 2)
     {
         printf("Usage ./imath filename\n");
     }
-	FILE* fp;
+    
+        FILE* fp;
     fp = fopen(argv[1], "r");
+    
     if(fp == NULL)
     {
         printf("NULL ERROR\n");
+	exit(1);
     }
-    printf("Success\n");
+
+    printf("Opening file success\n");
+
+    char input;
+    int counter = 0;
+
+    //read file contents
+    while(fread(&input, sizeof(char), 1, fp) && counter < 100){
+      printf("%c", input);
+      counter++;
+    }
+    printf("%d\n", counter);
 	return 0;
 }
