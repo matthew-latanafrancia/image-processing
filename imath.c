@@ -162,14 +162,14 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
 
     int red, green, blue;
 
-    for(int i = 0; i < 100; i++){
+    for(int i = 0; i < (*width * *height); i++){
       red = fgetc(fp);
       green = fgetc(fp);
       blue = fgetc(fp);
 
       printf("%d %d %d\n", red, green, blue);
     }
-    
+  printf("%ld   %ld\n", *width, *height);
     return img;
 }
 
