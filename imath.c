@@ -84,9 +84,12 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
 PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned long int *height)
 {
 
-	PPMPixel *img;
-	
-
+  PPMPixel *img;
+  int check;
+  int fileMaxRGB;
+  char input;
+  char string[2];
+       
   FILE* fp;
     fp = fopen(filename, "r");
     
@@ -98,14 +101,8 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
 
     printf("Opening file success\n");
 
-    char input;
-    int counter = 0;
-    //read file contents
-    /*while(fread(&input, sizeof(char), 1, fp) && counter < 100){
-      printf("%c", input);
-      counter++;
-    }*/
-    char string[2];
+    //read image format
+    //check the image format by reading the first two characters in filename and compare them to P6
     for(int i = 0; i < 2; i++)
     {
       fread(&input, sizeof(char), 1, fp);
@@ -117,26 +114,49 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
       exit(1);
     }
 
-    printf("%d\n", counter);
+      //If there are comments in the file, skip them. You may assume that comments exist only in the header block.
 
-	//read image format
+    check = fread(&input, sizeof(char), 1, fp);
+    if(check == 0)
+      printf("error first\n");
+    
+    check = fread(&input, sizeof(char), 1, fp);
+    if(check == 0)
+      printf("error second\n");
 
-	//check the image format by reading the first two characters in filename and compare them to P6.
+    char* tempbuf = (char*) malloc(sizeof(char) * 1024);
+    
+    while(input == '#'){
+      //go to the next line
+      fgets(tempbuf, 1024, fp);
+      //check the next character
 
-
-	//If there are comments in the file, skip them. You may assume that comments exist only in the header block.
-
-	
+      
+      if(fread(&input, sizeof(char), 1, fp) == 0){
+	printf("ERROR\n");
+	exit(1);
+      }
+    }
 	//read image size information
-	
+    
+    ungetc((int)input, fp);
+    fscanf(fp, "%ld", width);
+    fscanf(fp, "%ld", height);
+    printf("%ld   %ld\n", *width, *height);
 
-	//Read rgb component. Check if it is equal to RGB_MAX. If  not, display error message.
-	
+    //check for max byte
+    //Read rgb component.  Check if it is equal to RGB_MAX. If not, display error message.
+    fscanf(fp, "%d", &fileMaxRGB);
+    printf("%d\n", fileMaxRGB);
     
     //allocate memory for img. NOTE: A ppm image of w=200 and h=300 will contain 60000 triplets (i.e. for r,g,b), ---> 18000 bytes.
 
     //read pixel data from filename into img. The pixel data is stored in scanline order from left to right (up to bottom) in 3-byte chunks (r g b values for each pixel) encoded as binary numbers.
-
+     
+    for(int i = 0; i < 30; i++){
+      fread(&input, sizeof(char), 1, fp);
+      printf("%c", input);
+    }
 	return img;
 }
 
