@@ -152,12 +152,25 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
     //allocate memory for img. NOTE: A ppm image of w=200 and h=300 will contain 60000 triplets (i.e. for r,g,b), ---> 18000 bytes.
 
     //read pixel data from filename into img. The pixel data is stored in scanline order from left to right (up to bottom) in 3-byte chunks (r g b values for each pixel) encoded as binary numbers.
-     
-    for(int i = 0; i < 30; i++){
-      fread(&input, sizeof(char), 1, fp);
-      printf("%c", input);
+   
+    
+    /* for(int i = 0; i < 900; i++){
+      fread(&rgbValues, sizeof(char), 1, fp);
+      printf("%c ", rgbValues);
     }
-	return img;
+    printf("\n"); */
+
+    int red, green, blue;
+
+    for(int i = 0; i < 100; i++){
+      red = fgetc(fp);
+      green = fgetc(fp);
+      blue = fgetc(fp);
+
+      printf("%d %d %d\n", red, green, blue);
+    }
+    
+    return img;
 }
 
 /* Create threads and apply filter to image.
@@ -189,7 +202,8 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
  */
 int main(int argc, char *argv[])
 {
-	//load the image into the buffer
+  //load the image into the buffer
+
   /*
    * Things we need to get:
    * 1. "Magic" number (P6)
