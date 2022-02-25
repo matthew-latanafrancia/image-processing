@@ -64,8 +64,22 @@ void *threadfn(void *params)
  */
 void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned long int height)
 {
+  FILE *fp;
+  fp = fopen(name, "w");
 
-    
+  //Writing the header block
+
+  //P6
+  fwrite("P6\n", sizeof(char), 3, fp);
+
+  //Width Height
+  fwrite(&width, sizeof(long int), 1, fp);
+  fwrite(" ", sizeof(char), 1, fp);
+  fwrite(&height, sizeof(long int), 1, fp);
+
+  //Max color value
+  fwrite("\n255", sizeof(char), 4, fp);
+  
 }
 
 /* Open the filename image for reading, and parse it.
@@ -183,7 +197,10 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
     PPMPixel *result;
     //allocate memory for result
 
+    result = (PPMPixel*)malloc(sizeof(PPMPixel) * h * w);
+
     //allocate memory for parameters (one for each thread)
+    //How many threads do we use?
 
     /*create threads and apply filter.
      For each thread, compute where to start its work.  Determine the size of the work. If the size is not even, the last thread shall take the rest of the work.
@@ -191,7 +208,7 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
    
 
    //Let threads wait till they all finish their work.
-
+   //We would probably use the barrier here
 
 	return result;
 }
