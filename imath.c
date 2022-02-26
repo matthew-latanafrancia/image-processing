@@ -41,15 +41,15 @@ void *threadfn(void *params)
 	  -1,  8, -1,
 	  -1, -1, -1,
 	};
-
-    int red, green, blue;
-    
-    /*For all pixels in the work region of image (from start to start+size)
-      Multiply every value of the filter with corresponding image pixel. Note: this is NOT matrix multiplication.
-     
-     //truncate values smaller than zero and larger than 255
-      Store the new values of r,g,b in p->result.
-     */
+  
+  printf("You are here\n");
+  int red, green, blue;
+  /*For all pixels in the work region of image (from start to start+size)
+    Multiply every value of the filter with corresponding image pixel. Note: this is NOT matrix multiplication.
+   
+   //truncate values smaller than zero and larger than 255
+    Store the new values of r,g,b in p->result.
+   */
 		
 	return NULL;
 }
@@ -105,67 +105,67 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
   char string[2];
        
   FILE* fp;
-    fp = fopen(filename, "r");
+  fp = fopen(filename, "r");
     
-    if(fp == NULL)
+  if(fp == NULL)
+  {
+    printf("NULL ERROR\n");
+	  exit(1);
+  }
+(PPMPixel*)malloc(sizeof(PPMPixel) * (*height) * (*width));
+  printf("Opening file success\n");
+
+  //read image format
+  //check the image format by reading the first two characters in filename and compare them to P6
+  for(int i = 0; i < 2; i++)
+  {
+    fread(&input, sizeof(char), 1, fp);
+    string[i] = input;
+  }
+  if(strcmp(string, "P6") != 0)
+  {
+    printf("Error, file does not match compatible type\n");
+    exit(1);
+  }
+
+  //If there are comments in the file, skip them. You may assume that comments exist only in the header block.
+
+  check = fread(&input, sizeof(char), 1, fp);
+  if(check == 0)
+    printf("error first\n");
+    
+  check = fread(&input, sizeof(char), 1, fp);
+  if(check == 0)
+    printf("error second\n");
+
+  char* tempbuf = (char*) malloc(sizeof(char) * 1024);
+    
+  while(input == '#')
+  {
+    //go to the next line
+    fgets(tempbuf, 1024, fp);
+    //check the next character
+    if(fread(&input, sizeof(char), 1, fp) == 0)
     {
-      printf("NULL ERROR\n");
+	    printf("ERROR\n");
 	    exit(1);
     }
-
-    printf("Opening file success\n");
-
-    //read image format
-    //check the image format by reading the first two characters in filename and compare them to P6
-    for(int i = 0; i < 2; i++)
-    {
-      fread(&input, sizeof(char), 1, fp);
-      string[i] = input;
-    }
-    if(strcmp(string, "P6") != 0)
-    {
-      printf("Error, file does not match compatible type\n");
-      exit(1);
-    }
-
-      //If there are comments in the file, skip them. You may assume that comments exist only in the header block.
-
-    check = fread(&input, sizeof(char), 1, fp);
-    if(check == 0)
-      printf("error first\n");
-    
-    check = fread(&input, sizeof(char), 1, fp);
-    if(check == 0)
-      printf("error second\n");
-
-    char* tempbuf = (char*) malloc(sizeof(char) * 1024);
-    
-    while(input == '#'){
-      //go to the next line
-      fgets(tempbuf, 1024, fp);
-      //check the next character
-
-      
-      if(fread(&input, sizeof(char), 1, fp) == 0){
-	printf("ERROR\n");
-	exit(1);
-      }
-    }
+  }
 	//read image size information
     
-    ungetc((int)input, fp);
-    fscanf(fp, "%ld", width);
-    fscanf(fp, "%ld", height);
-    printf("%ld   %ld\n", *width, *height);
+  ungetc((int)input, fp);
+  fscanf(fp, "%ld", width);
+  fscanf(fp, "%ld", height);
+  printf("%ld   %ld\n", *width, *height);
 
-    //check for max byte
-    //Read rgb component.  Check if it is equal to RGB_MAX. If not, display error message.
-    fscanf(fp, "%d", &fileMaxRGB);
-    printf("%d\n", fileMaxRGB);
+  //check for max byte
+  //Read rgb component.  Check if it is equal toman pthread RGB_MAX. If not, display error message.
+  fscanf(fp, "%d", &fileMaxRGB);
+  printf("%d\n", fileMaxRGB);
     
-    //allocate memory for img. NOTE: A ppm image of w=200 and h=300 will contain 60000 triplets (i.e. for r,g,b), ---> 18000 bytes.
+  //allocate memory for img. NOTE: A ppm image of w=200 and h=300 will contain 60000 triplets (i.e. for r,g,b), ---> 18000 bytes.
 
-    //read pixel data from filename into img. The pixel data is stored in scanline order from left to right (up to bottom) in 3-byte chunks (r g b values for each pixel) encoded as binary numbers.
+  //read pixel data from filename into img. The pixel data is stored in scanline order from left to right (up to bottom) in 3-byte chunks (r g b values for each pixel) encoded as binary numbers.
    
     
     /* for(int i = 0; i < 900; i++){
@@ -174,17 +174,23 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
     }
     printf("\n"); */
 
-    int red, green, blue;
+  PPMPixel* pix;
+  pix = (PPMPixel*)malloc(sizeof(PPMPixel) * (*height) * (*width));
 
-    for(int i = 0; i < (*width * *height); i++){
-      red = fgetc(fp);
-      green = fgetc(fp);
-      blue = fgetc(fp);
+  //Takes the rgb values of each pixel and stores them into the array pix
+  for(int i = 0; i < ((*width) * (*height)); i++)
+  {
+    pix[i].r = fgetc(fp);
+    pix[i].g = fgetc(fp);
+    pix[i].b = fgetc(fp);
+  }
 
-      printf("%d %d %d\n", red, green, blue);
-    }
-  printf("%ld   %ld\n", *width, *height);
-    return img;
+  //Print statement to check if values are printed
+  for(int i = 0; i < ((*width) * (*height)); i++)
+  {
+    printf("%d %d %d\n", pix[i].r, pix[i].g, pix[i].b);
+  }
+  return img;
 }
 
 /* Create threads and apply filter to image.
@@ -194,21 +200,51 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
  */
 PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, double *elapsedTime) {
 
-    PPMPixel *result;
-    //allocate memory for result
+  PPMPixel *result;
+  pthread_t aThread;
+  void *tretA = 0;
 
-    result = (PPMPixel*)malloc(sizeof(PPMPixel) * h * w);
+  //allocate memory for result
+  result = (PPMPixel*)malloc(sizeof(PPMPixel) * h * w);
+  struct parameter a;
+  a.image = image;
+  a.result = result;
+  a.w = w;
+  a.h = h;
+  a.start = 0;
+  a.size = w * h;
 
-    //allocate memory for parameters (one for each thread)
-    //How many threads do we use?
+  if(pthread_create(&aThread, NULL, threadfn, (void*)&a) != 0)
+  {
+    printf("ERROR CREATING THREAD\n");
+    exit(1);
+  }
+  else
+  {
+    pthread_join(aThread, &tretA);
+    printf("Thread created\n");
+  }
+  
+  printf("Width: %ld\n", a.w);
+  printf("Height: %ld\n", a.h);
+  printf("Start: %ld\n", a.start);
+  printf("Size: %ld\n", a.size);
 
-    /*create threads and apply filter.
-     For each thread, compute where to start its work.  Determine the size of the work. If the size is not even, the last thread shall take the rest of the work.
-     */
-   
+  //allocate memory for parameters (one for each thread)
+  //How many threads do we use?
+
+  /*create threads and apply filter.
+   For each thread, compute where to start its work.  Determine the size of the work. If the size is not even, the last thread shall take the rest of the work.
+   */
+  
+  int size = (w * h)/4;
 
    //Let threads wait till they all finish their work.
    //We would probably use the barrier here
+
+  /*Start idea is that we have each thread take a quarter of the image
+   *and use that as its size parameter. The formula is (w * h)/# of threads 
+   */
 
 	return result;
 }
@@ -234,7 +270,8 @@ int main(int argc, char *argv[])
     {
       printf("Usage ./imath filename\n");
     }
-    readImage(argv[1], &w, &h);
+    PPMPixel* img = readImage(argv[1], &w, &h);
+    PPMPixel* finalImg = apply_filters(img, w, h, &elapsedTime);
 
 	return 0;
 }
