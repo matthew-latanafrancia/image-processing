@@ -78,7 +78,27 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
   fwrite(&height, sizeof(long int), 1, fp);
 
   //Max color value
-  fwrite("\n255", sizeof(char), 4, fp);
+  fwrite("\n255\n", sizeof(char), 4, fp);
+
+  //add the values by row
+  int pixelCounter;
+  for(int i = 0; i > height * width; i++)
+  {
+    if(pixelCounter == width)
+    {
+      //if the pixelcounter adds the width, then we go to the next line of the ppm
+      fwrite("\n", sizeof(char), 1, fp);
+      pixelCounter = 0;
+    }
+    fwrite(&image[i].r, sizeof(char), 1, fp);
+    fwrite(" ", sizeof(char), 1, fp);
+    fwrite(&image[i].g, sizeof(char), 1, fp);
+    fwrite(" ", sizeof(char), 1, fp);
+    fwrite(&image[i].b, sizeof(char), 1, fp);
+    fwrite(" ", sizeof(char), 1, fp);
+   
+    pixelCounter++;
+  }
   
 }
 
