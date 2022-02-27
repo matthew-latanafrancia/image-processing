@@ -65,7 +65,8 @@ void *threadfn(void *params)
 void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned long int height)
 {
   FILE *fp;
-  fp = fopen(name, "w");
+  fp = fopen(name, "wb");
+  printf("%ld %ld \n", width, height);
 
   //Writing the header block
 
@@ -73,30 +74,53 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
   fwrite("P6\n", sizeof(char), 3, fp);
 
   //Width Height
-  fwrite(&width, sizeof(long int), 1, fp);
+  fwrite("800", sizeof(char), 3, fp);
   fwrite(" ", sizeof(char), 1, fp);
-  fwrite(&height, sizeof(long int), 1, fp);
+  fwrite("600", sizeof(char), 3, fp);
 
   //Max color value
   fwrite("\n255\n", sizeof(char), 4, fp);
 
+  fclose(fp);
+
+  //fwrite(image, sizeof(PPMPixel), 1, fp);
+  
   //add the values by row
+  
   int pixelCounter;
-  for(int i = 0; i > height * width; i++)
+  size_t check;
+  int counter = 0;
+
+  
+  for(int i = 0; i < (height * width); i++)
   {
+    counter++;
     if(pixelCounter == width)
     {
       //if the pixelcounter adds the width, then we go to the next line of the ppm
       fwrite("\n", sizeof(char), 1, fp);
       pixelCounter = 0;
     }
-    fwrite(&image[i].r, sizeof(char), 1, fp);
-    fwrite(" ", sizeof(char), 1, fp);
-    fwrite(&image[i].g, sizeof(char), 1, fp);
-    fwrite(" ", sizeof(char), 1, fp);
-    fwrite(&image[i].b, sizeof(char), 1, fp);
-    fwrite(" ", sizeof(char), 1, fp);
-   
+    printf("%d %d %d %d\n", image[i].r, image[i].g, image[i].b, counter);
+    
+    //check = fwrite(&image[i].r, sizeof(char), 1, fp);
+    //fwrite(" ", sizeof(char), 1, fp);
+    //check = fwrite(&image[i].g, sizeof(char), 1, fp);
+    //fwrite(" ", sizeof(char), 1, fp);
+    //check = fwrite(&image[i].b, sizeof(char), 1, fp);
+    //fwrite(" ", sizeof(char), 1, fp);
+
+    check = fwrite(image, sizeof(PPMPixel), 1, fp);
+    //printf("%d %d %d\n", image->r, image->g, image->b);
+    image++;
+
+    if(check == 0){
+      //error
+      printf("Error in writeImage\n");
+      //fclose(fp);
+      //exit(1);
+    }
+
     pixelCounter++;
   }
   
@@ -206,11 +230,15 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
   }
 
   //Print statement to check if values are printed
+  int counter = 0;
   for(int i = 0; i < ((*width) * (*height)); i++)
   {
-    printf("%d %d %d\n", pix[i].r, pix[i].g, pix[i].b);
+    counter++;
+    printf("%d %d %d %d\n", pix[i].r, pix[i].g, pix[i].b, counter);
   }
-  return img;
+  
+  fclose(fp);
+  return pix;
 }
 
 /* Create threads and apply filter to image.
@@ -292,6 +320,10 @@ int main(int argc, char *argv[])
     }
     PPMPixel* img = readImage(argv[1], &w, &h);
     PPMPixel* finalImg = apply_filters(img, w, h, &elapsedTime);
+
+    //test image
+    char* name = "laplacian.ppm";
+    writeImage(img, name, w, h);
 
 	return 0;
 }
