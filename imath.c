@@ -66,66 +66,84 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
 {
   FILE *fp;
   fp = fopen(name, "wb");
-  printf("%ld %ld \n", width, height);
+  //printf("%ld %ld \n", width, height);
 
   //Writing the header block
 
-  //P6
-  fwrite("P6\n", sizeof(char), 3, fp);
-
-  //Width Height
-  fwrite("800", sizeof(char), 3, fp);
-  fwrite(" ", sizeof(char), 1, fp);
-  fwrite("600", sizeof(char), 3, fp);
-
-  //Max color value
-  fwrite("\n255\n", sizeof(char), 4, fp);
-
-  fclose(fp);
-
-  //fwrite(image, sizeof(PPMPixel), 1, fp);
-  
+  fprintf(fp, "P6\n %ld %ld\n 255\n", width, height); 
   //add the values by row
   
-  int pixelCounter;
   size_t check;
   int counter = 0;
+  int widthCounter = 0;
 
-  
   for(int i = 0; i < (height * width); i++)
   {
     counter++;
-    if(pixelCounter == width)
-    {
-      //if the pixelcounter adds the width, then we go to the next line of the ppm
-      fwrite("\n", sizeof(char), 1, fp);
-      pixelCounter = 0;
-    }
     printf("%d %d %d %d\n", image[i].r, image[i].g, image[i].b, counter);
     
-    //check = fwrite(&image[i].r, sizeof(char), 1, fp);
-    //fwrite(" ", sizeof(char), 1, fp);
-    //check = fwrite(&image[i].g, sizeof(char), 1, fp);
-    //fwrite(" ", sizeof(char), 1, fp);
-    //check = fwrite(&image[i].b, sizeof(char), 1, fp);
-    //fwrite(" ", sizeof(char), 1, fp);
+    check = fputc(image[i].r, fp);
+    if(check == EOF){
+      //error
+      printf("Error in writeImage1\n");
+      fclose(fp);
+      exit(1);
+    }
+    check = fputc(image[i].g, fp);
+    if(check == EOF){
+      //error
+      printf("Error in writeImage2\n");
+      fclose(fp);
+      exit(1);
+    }
+    check = fputc(image[i].b, fp);
+    if(check == EOF){
+      //error
+      printf("Error in writeImage3\n");
+      fclose(fp);
+      exit(1);
+    }
+    /*
+    widthCounter++;
+    if(widthCounter == width){
+      widthCounter = 0;
+      fprintf(fp, "\n");
+    }*/
+  }
+  /*
+ printf("%ld\n", sizeof(PPMPixel));
+  unsigned char **temp = (unsigned char**)malloc(sizeof(char*) * height);
+  int indexCounter = 0;
+  int tempCounter = 0;
+  temp[tempCounter] = (unsigned char *)malloc(sizeof(char) * width * 3);
+  for(int i = 0; i < (height*width); i++){
+    counter++;
+    printf("Putting in pixel: %d\nr: %d\ng: %d\nb: %d\n", counter, image[i].r, image[i].g, image[i].b);
+    temp[tempCounter][indexCounter] = image[i].r;
+    indexCounter++;
+    temp[tempCounter][indexCounter] = image[i].g;
+    indexCounter++;
+    temp[tempCounter][indexCounter] = image[i].b;
+    indexCounter++;
 
-    check = fwrite(image, sizeof(PPMPixel), 1, fp);
-    //printf("%d %d %d\n", image->r, image->g, image->b);
-    image++;
+    if(indexCounter == (width * 3)){
+      tempCounter++;
+      temp[tempCounter] = (char *)malloc(sizeof(char) * width * 3);
+      indexCounter = 0;
+    }
+  }
 
+  check = fwrite(temp, sizeof(temp), 1, fp);
     if(check == 0){
       //error
       printf("Error in writeImage\n");
-      //fclose(fp);
-      //exit(1);
+      fclose(fp);
+      exit(1);
     }
 
-    pixelCounter++;
-  }
-  
+  */
+  fclose(fp);
 }
-
 /* Open the filename image for reading, and parse it.
     Example of a ppm header:    //http://netpbm.sourceforge.net/doc/ppm.html
     P6                  -- image format
@@ -205,6 +223,10 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
   //check for max byte
   //Read rgb component.  Check if it is equal toman pthread RGB_MAX. If not, display error message.
   fscanf(fp, "%d", &fileMaxRGB);
+  check = fread(&input, sizeof(char), 1, fp);
+  if(check == 0)
+    printf("error first\n");
+
   printf("%d\n", fileMaxRGB);
     
   //allocate memory for img. NOTE: A ppm image of w=200 and h=300 will contain 60000 triplets (i.e. for r,g,b), ---> 18000 bytes.
