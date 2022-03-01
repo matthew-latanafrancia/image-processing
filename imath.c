@@ -50,59 +50,73 @@ void *threadfn(void *params)
   int iteratorImageHeight = 0;
   int iteratorFilterWidth = 0;
   int iteratorFilterHeight = 0;
-  int current;
 
-  printf("Calculation: %ld\n", (iteratorImageWidth - (FILTER_WIDTH / 2) + iteratorFilterWidth + p->w) % p->w);
+  //printf("Calculation: %ld\n", (iteratorImageWidth - (FILTER_WIDTH / 2) + iteratorFilterWidth + p->w) % p->w);
+  /*x_coordinate = (iteratorImageWidth - (FILTER_WIDTH / 2) + iteratorFilterWidth + p->w) % p->w;
+  y_coordinate = (iteratorImageHeight - (FILTER_HEIGHT / 2) + iteratorFilterHeight + p->h) % p->h;
+  red += p->image[y_coordinate * p->w + x_coordinate].r * laplacian[iteratorFilterHeight][iteratorFilterWidth];
+  green += p->image[y_coordinate * p->w + x_coordinate].g * laplacian[iteratorFilterHeight][iteratorFilterWidth];
+  blue += p->image[y_coordinate * p->w + x_coordinate].b * laplacian[iteratorFilterHeight][iteratorFilterWidth];*/
+  
   for(iteratorImageHeight = 0; iteratorImageHeight < p->h; iteratorImageHeight++)
   {
     for(iteratorImageWidth = 0; iteratorImageWidth < p->w; iteratorImageWidth++)
     {
-      /*x_coordinate = (iteratorImageWidth - (FILTER_WIDTH / 2) + iteratorFilterWidth + p->w) % p->w;
-      y_coordinate = (iteratorImageHeight - (FILTER_HEIGHT / 2) + iteratorFilterHeight + p->h) % p->h;
-      red += p->image[y_coordinate * p->w + x_coordinate].r * laplacian[iteratorFilterHeight][iteratorFilterWidth];
-      green += p->image[y_coordinate * p->w + x_coordinate].g * laplacian[iteratorFilterHeight][iteratorFilterWidth];
-      blue += p->image[y_coordinate * p->w + x_coordinate].b * laplacian[iteratorFilterHeight][iteratorFilterWidth];*/
-      current = p->w * iteratorImageHeight + iteratorImageWidth;
-      
-    }
-    if(red > 255)
-    {
-      p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 255;
-    }
-    else if(red < 0)
-    {
-      p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 0;
-    }
-    else
-    {
-      p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = red;
-    }
-    
-    if(green > 255)
-    {
-      p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = 255;
-    }
-    else if(green < 0)
-    {
-      p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = 0;
-    }
-    else
-    {
-      p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = green;
+      red = 0;
+      green = 0;
+      blue = 0;
+      for(iteratorFilterHeight = 0; iteratorFilterHeight < FILTER_HEIGHT; iteratorFilterHeight++)
+      {
+        for(iteratorFilterWidth = 0; iteratorFilterWidth < FILTER_WIDTH; iteratorFilterWidth++)
+        {
+          //depending on which filter height and width, get that corresponding pixel
+          x_coordinate = (iteratorImageWidth - (FILTER_WIDTH / 2) + iteratorFilterWidth + p->w) % p->w;
+          y_coordinate = (iteratorImageHeight - (FILTER_HEIGHT / 2) + iteratorFilterHeight + p->h) % p->h;
+          red += (int)p->image[y_coordinate * p->w + x_coordinate].r * laplacian[iteratorFilterHeight][iteratorFilterWidth];
+          green += (int)p->image[y_coordinate * p->w + x_coordinate].g * laplacian[iteratorFilterHeight][iteratorFilterWidth];
+          blue += (int)p->image[y_coordinate * p->w + x_coordinate].b * laplacian[iteratorFilterHeight][iteratorFilterWidth];
+        }
+
+        if(red > 255)
+        {
+          p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 255;
+        }
+        else if(red < 0)
+        {
+          p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 0;
+        }
+        else
+        {
+          p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = red;
+        }
+        if(green > 255)
+        {
+          p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = 255;
+        }
+        else if(green < 0)
+        {
+          p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = 0;
+        }
+        else
+        {
+          p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = green;
+        }
+
+        if(blue > 255)
+        {
+          p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = 255;
+        }
+        else if(blue < 0)
+        {
+          p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = 0;
+        }
+        else
+        {
+          p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = blue;
+        }
+      }
     }
 
-    if(blue > 255)
-    {
-      p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = 255;
-    }
-    else if(blue < 0)
-    {
-      p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = 0;
-    }
-    else
-    {
-      p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = blue;
-    }
   }
   //We need to cast the PPMPixel chars to ints
   //red+= image[y_coordinate * imageWidth + x_coordinate].r * laplacian[iteratorFilterHeight][iteratorFilterWidth]
@@ -410,7 +424,7 @@ int main(int argc, char *argv[])
 
     //test image
     char* name = "laplacian.ppm";
-    writeImage(img, name, w, h);
+    writeImage(finalImg, name, w, h);
 
 	return 0;
 }
