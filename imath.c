@@ -42,7 +42,6 @@ void *threadfn(void *params)
 	  -1,  8, -1,
 	  -1, -1, -1,
 	};
-  int counter = 0;
   int red, green, blue;
   int x_coordinate = 0;
   int y_coordinate = 0;
@@ -145,7 +144,6 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
   
   size_t check;
   int counter = 0;
-  int widthCounter = 0;
 
   for(int i = 0; i < (height * width); i++)
   {
@@ -284,7 +282,6 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
   }
 
   //Print statement to check if values are printed
-  int counter = 0;
   /*for(int i = 0; i < ((*width) * (*height)); i++)
   {
     counter++;
@@ -303,8 +300,6 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
 PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, double *elapsedTime) {
 
   PPMPixel *result;
-  pthread_t aThread;
-  void *tretA = 0;
   clock_t begin = clock();
   //allocate memory for result
   result = (PPMPixel*)malloc(sizeof(PPMPixel) * h * w);
