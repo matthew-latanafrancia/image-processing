@@ -34,7 +34,7 @@ struct parameter {
  */
 void *threadfn(void *params)
 {
-	
+	struct parameter* p = (struct parameter*) params;
 	int laplacian[FILTER_WIDTH][FILTER_HEIGHT] =
 	{
 	  -1, -1, -1,
@@ -44,6 +44,71 @@ void *threadfn(void *params)
   
   printf("You are here\n");
   int red, green, blue;
+  int x_coordinate = 0;
+  int y_coordinate = 0;
+  int iteratorImageWidth = 0;
+  int iteratorImageHeight = 0;
+  int iteratorFilterWidth = 0;
+  int iteratorFilterHeight = 0;
+  int current;
+
+  printf("Calculation: %ld\n", (iteratorImageWidth - (FILTER_WIDTH / 2) + iteratorFilterWidth + p->w) % p->w);
+  for(iteratorImageHeight = 0; iteratorImageHeight < p->h; iteratorImageHeight++)
+  {
+    for(iteratorImageWidth = 0; iteratorImageWidth < p->w; iteratorImageWidth++)
+    {
+      /*x_coordinate = (iteratorImageWidth - (FILTER_WIDTH / 2) + iteratorFilterWidth + p->w) % p->w;
+      y_coordinate = (iteratorImageHeight - (FILTER_HEIGHT / 2) + iteratorFilterHeight + p->h) % p->h;
+      red += p->image[y_coordinate * p->w + x_coordinate].r * laplacian[iteratorFilterHeight][iteratorFilterWidth];
+      green += p->image[y_coordinate * p->w + x_coordinate].g * laplacian[iteratorFilterHeight][iteratorFilterWidth];
+      blue += p->image[y_coordinate * p->w + x_coordinate].b * laplacian[iteratorFilterHeight][iteratorFilterWidth];*/
+      current = p->w * iteratorImageHeight + iteratorImageWidth;
+      
+    }
+    if(red > 255)
+    {
+      p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 255;
+    }
+    else if(red < 0)
+    {
+      p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 0;
+    }
+    else
+    {
+      p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = red;
+    }
+    
+    if(green > 255)
+    {
+      p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = 255;
+    }
+    else if(green < 0)
+    {
+      p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = 0;
+    }
+    else
+    {
+      p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = green;
+    }
+
+    if(blue > 255)
+    {
+      p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = 255;
+    }
+    else if(blue < 0)
+    {
+      p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = 0;
+    }
+    else
+    {
+      p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = blue;
+    }
+  }
+  //We need to cast the PPMPixel chars to ints
+  //red+= image[y_coordinate * imageWidth + x_coordinate].r * laplacian[iteratorFilterHeight][iteratorFilterWidth]
+  //green+= image[y_coordinate * imageWidth + x_coordinate].g * laplacian[iteratorFilterHeight][iteratorFilterWidth]
+  //blue+= image[y_coordinate * imageWidth + x_coordinate].b * laplacian[iteratorFilterHeight][iteratorFilterWidth]
+
   /*For all pixels in the work region of image (from start to start+size)
     Multiply every value of the filter with corresponding image pixel. Note: this is NOT matrix multiplication.
    
@@ -80,7 +145,7 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
   for(int i = 0; i < (height * width); i++)
   {
     counter++;
-    printf("%d %d %d %d\n", image[i].r, image[i].g, image[i].b, counter);
+    //printf("%d %d %d %d\n", image[i].r, image[i].g, image[i].b, counter);
     
     check = fputc(image[i].r, fp);
     if(check == EOF){
@@ -253,11 +318,11 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
 
   //Print statement to check if values are printed
   int counter = 0;
-  for(int i = 0; i < ((*width) * (*height)); i++)
+  /*for(int i = 0; i < ((*width) * (*height)); i++)
   {
     counter++;
     printf("%d %d %d %d\n", pix[i].r, pix[i].g, pix[i].b, counter);
-  }
+  }*/
   
   fclose(fp);
   return pix;
