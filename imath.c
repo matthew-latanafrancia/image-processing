@@ -262,13 +262,6 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
   //allocate memory for img. NOTE: A ppm image of w=200 and h=300 will contain 60000 triplets (i.e. for r,g,b), ---> 18000 bytes.
 
   //read pixel data from filename into img. The pixel data is stored in scanline order from left to right (up to bottom) in 3-byte chunks (r g b values for each pixel) encoded as binary numbers.
-   
-    
-    /* for(int i = 0; i < 900; i++){
-      fread(&rgbValues, sizeof(char), 1, fp);
-      printf("%c ", rgbValues);
-    }
-    printf("\n"); */
 
   PPMPixel* pix;
   pix = (PPMPixel*)malloc(sizeof(PPMPixel) * (*height) * (*width));
@@ -300,20 +293,17 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
 PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, double *elapsedTime) {
 
   PPMPixel *result;
-  clock_t begin = clock();
+  //clock_t begin = clock(); //begin timer
+  struct timeval t1, t2;
+  gettimeofday(&t1, NULL);
   //allocate memory for result
   result = (PPMPixel*)malloc(sizeof(PPMPixel) * h * w);
   struct parameter params[THREADS];
-  /*a.image = image;
-  a.result = result;
-  a.w = w;
-  a.h = h;
-  a.start = 0;
-  a.size = w * h;*/
   pthread_t threadArray[THREADS];
   pthread_barrier_init(&our_barrier, NULL, THREADS);
   for(int i = 0; i < THREADS; i++)
   {
+    //initialize individual values for the threads
     params[i].image = image;
     params[i].result = result;
     params[i].w = w;
@@ -327,23 +317,21 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
       exit(1);
     }
   }
+
   for(int i = 0; i < THREADS; i++)
   {
+    //join the threads
     pthread_join(threadArray[i], NULL);
   }
-  /*if(pthread_create(&aThread, NULL, threadfn, (void*)&a) != 0)
-  {
-    printf("ERROR CREATING THREAD\n");
-    exit(1);
-  }
-  else
-  {
-    pthread_join(aThread, &tretA);
-    printf("Thread created\n");
-  }*/
+
+  //destroy the barrier
   pthread_barrier_destroy(&our_barrier);
-  clock_t end = clock();
-  *elapsedTime = (double)(end - begin)/CLOCKS_PER_SEC;
+  //clock_t end = clock(); //end clock
+  //*elapsedTime = (double)(end - begin)/CLOCKS_PER_SEC; //calculate time
+  gettimeofday(&t2, NULL);
+
+  *elapsedTime = (t2.tv_sec - t1.tv_sec) * 1000.0;      // sec to ms
+  *elapsedTime = (t2.tv_usec - t1.tv_usec) / 100000.0;   // us to ms
 	return result;
 }
 
@@ -354,13 +342,6 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
 int main(int argc, char *argv[])
 {
   //load the image into the buffer
-
-  /*
-   * Things we need to get:
-   * 1. "Magic" number (P6)
-   * 2. Width and heigh of the ppm
-   * 3. 
-   */
     unsigned long int w, h;
     double elapsedTime = 0.0;
     
@@ -374,6 +355,6 @@ int main(int argc, char *argv[])
     //test image
     char* name = "laplacian.ppm";
     writeImage(finalImg, name, w, h);
-    printf("%f\n", elapsedTime);
+    printf("%.3f\n", elapsedTime);
 	return 0;
 }
