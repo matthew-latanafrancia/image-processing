@@ -307,7 +307,15 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
     params[i].w = w;
     params[i].h = h;
     params[i].start = (h/THREADS) * i;
-    params[i].size = h/THREADS * (i + 1);
+    if(i == THREADS - 1)
+    {
+      params[i].size = h;
+    }
+    else
+    {
+      params[i].size = h/THREADS * (i + 1);
+    }
+    //params[i].size = h/THREADS * (i + 1);
     //(h * w)/THREADS * (i + 1);
     if(pthread_create(&threadArray[i], NULL, threadfn, (void*)&params[i]) != 0)
     {
