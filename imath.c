@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 
-#define THREADS 1
+#define THREADS 4
 
 #define FILTER_WIDTH 3
 #define FILTER_HEIGHT 3
@@ -68,7 +68,7 @@ void *threadfn(void *params)
           green += (int)p->image[y_coordinate * p->w + x_coordinate].g * laplacian[iteratorFilterHeight][iteratorFilterWidth];
           blue += (int)p->image[y_coordinate * p->w + x_coordinate].b * laplacian[iteratorFilterHeight][iteratorFilterWidth];
         }
-
+        
         if(red > 255)
         {
           p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 255;
@@ -106,8 +106,6 @@ void *threadfn(void *params)
         {
           p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = blue;
         }
-        // printf("%d\n", counter);
-        // counter++;
       }
     }
     //printf("%d\n", iteratorImageHeight);
