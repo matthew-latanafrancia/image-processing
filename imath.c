@@ -137,7 +137,7 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
 
   //Writing the header block
 
-  fprintf(fp, "P6\n %ld %ld\n 255\n", width, height); 
+  fprintf(fp, "P6\n## comment comment comment comment\ncomment comment comment comment comment comment\n%ld %ld\n 255\n", width, height); 
   //add the values by row
   
   size_t check;
