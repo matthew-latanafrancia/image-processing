@@ -5,7 +5,7 @@
 #include <sys/time.h>
 #include <pthread.h>
 
-#define THREADS 4
+#define THREADS 40
 
 #define FILTER_WIDTH 3
 #define FILTER_HEIGHT 3
@@ -25,7 +25,7 @@ struct parameter {
 	unsigned long int size;  //equal share of work (almost equal if odd)
 };
 
-pthread_barrier_t our_barrier;
+//pthread_barrier_t our_barrier;
 
 /*This is the thread function. It will compute the new values for the region of image specified in params (start to start+size) using convolution.
     (1) For each pixel in the input image, the filter is conceptually placed on top ofthe image with its origin lying on that pixel.
@@ -50,8 +50,6 @@ void *threadfn(void *params)
   int iteratorFilterWidth = 0;
   int iteratorFilterHeight = 0;
   
-  //This is the image iterator nested loop. It will go through the designated dimensions for the thread and analyze the pixels in said area
-  //with the laplacian filter.
   for(iteratorImageHeight = p->start; iteratorImageHeight < p->size; iteratorImageHeight++)
   {
     for(iteratorImageWidth = 0; iteratorImageWidth < p->w; iteratorImageWidth++)
@@ -59,7 +57,6 @@ void *threadfn(void *params)
       red = 0;
       green = 0;
       blue = 0;
-      //This is the iterator nested loop for the Laplacian matrix. It will apply the laplacian formula to the pixels to create our edge detection image
       for(iteratorFilterHeight = 0; iteratorFilterHeight < FILTER_HEIGHT; iteratorFilterHeight++)
       {
         for(iteratorFilterWidth = 0; iteratorFilterWidth < FILTER_WIDTH; iteratorFilterWidth++)
@@ -71,48 +68,38 @@ void *threadfn(void *params)
           green += (int)p->image[y_coordinate * p->w + x_coordinate].g * laplacian[iteratorFilterHeight][iteratorFilterWidth];
           blue += (int)p->image[y_coordinate * p->w + x_coordinate].b * laplacian[iteratorFilterHeight][iteratorFilterWidth];
         }
-        //These if statements truncate the rgb values if their values go above 255 or below 0
-        if(red > 255)
-        {
-          p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 255;
-        }
-        else if(red < 0)
-        {
-          p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 0;
-        }
-        else
-        {
-          p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = red;
-        }
-        if(green > 255)
-        {
-          p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = 255;
-        }
-        else if(green < 0)
-        {
-          p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = 0;
-        }
-        else
-        {
-          p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = green;
-        }
+      }        
+      if(red > 255)
+        p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 255;
+      else if(red < 0)
+        p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 0;
+      else
+        p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = red;
 
-        if(blue > 255)
-        {
-          p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = 255;
-        }
-        else if(blue < 0)
-        {
-          p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = 0;
-        }
-        else
-        {
-          p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = blue;
-        }
-      }
+      if(green > 255)
+        p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = 255;
+      else if(green < 0)
+        p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = 0;
+      else
+        p->result[iteratorImageHeight * p->w + iteratorImageWidth].g = green;
+
+      if(blue > 255)
+        p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = 255;
+      else if(blue < 0)
+        p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = 0;
+      else
+        p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = blue;
     }
+    //printf("%d\n", iteratorImageHeight);
   }
-	pthread_barrier_wait(&our_barrier);	
+
+  /*For all pixels in the work region of image (from start to start+size)
+    Multiply every value of the filter with corresponding image pixel. Note: this is NOT matrix multiplication.
+   
+   //truncate values smaller than zero and larger than 255
+    Store the new values of r,g,b in p->result.
+   */
+	//pthread_barrier_wait(&our_barrier);	
 	return NULL;
 }
 
@@ -128,16 +115,21 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
 {
   FILE *fp;
   fp = fopen(name, "wb");
+  //printf("%ld %ld \n", width, height);
 
   //Writing the header block
-  fprintf(fp, "P6\n %ld %ld\n 255\n", width, height);
 
-  fprintf(fp, "P6\n## comment comment comment comment\ncomment comment comment comment comment comment\n%ld %ld\n 255\n", width, height); 
+  fprintf(fp, "P6\n %ld %ld\n 255\n", width, height); 
   //add the values by row
+  
   size_t check;
+  int counter = 0;
 
   for(int i = 0; i < (height * width); i++)
   {
+    counter++;
+    //printf("%d %d %d %d\n", image[i].r, image[i].g, image[i].b, counter);
+    
     check = fputc(image[i].r, fp);
     if(check == EOF){
       //error
@@ -270,7 +262,6 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
   }*/
   
   fclose(fp);
-  free(tempbuf);
   return pix;
 }
 
@@ -289,7 +280,7 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
   result = (PPMPixel*)malloc(sizeof(PPMPixel) * h * w);
   struct parameter params[THREADS];
   pthread_t threadArray[THREADS];
-  pthread_barrier_init(&our_barrier, NULL, THREADS);
+  //pthread_barrier_init(&our_barrier, NULL, THREADS);
   for(int i = 0; i < THREADS; i++)
   {
     //initialize individual values for the threads
@@ -321,8 +312,8 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
     pthread_join(threadArray[i], NULL);
   }
 
-  //destroy the barrier
-  pthread_barrier_destroy(&our_barrier);
+  // //destroy the barrier
+  // pthread_barrier_destroy(&our_barrier);
   //clock_t end = clock(); //end clock
   //*elapsedTime = (double)(end - begin)/CLOCKS_PER_SEC; //calculate time
   gettimeofday(&t2, NULL);
@@ -353,6 +344,7 @@ int main(int argc, char *argv[])
     char* name = "laplacian.ppm";
     writeImage(finalImg, name, w, h);
     printf("%.3f\n", elapsedTime);
+
     free(img);
     free(finalImg);
 	return 0;
