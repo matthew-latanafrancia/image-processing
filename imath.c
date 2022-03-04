@@ -38,9 +38,9 @@ void *threadfn(void *params)
 	struct parameter* p = (struct parameter*) params;
 	int laplacian[FILTER_WIDTH][FILTER_HEIGHT] =
 	{
-	  -1, -1, -1,
-	  -1,  8, -1,
-	  -1, -1, -1,
+	  {-1, -1, -1},
+	  {-1,  8, -1},
+	  {-1, -1, -1},
 	};
   int red, green, blue;
   int x_coordinate = 0;
@@ -49,11 +49,15 @@ void *threadfn(void *params)
   int iteratorImageHeight = 0;
   int iteratorFilterWidth = 0;
   int iteratorFilterHeight = 0;
-  
+  /*
+   * These for loops loop throught the PPMPixel array (depending on the range for the thread)
+   * and will also loop through the laplacian filter during calculation of the result image.
+   */
   for(iteratorImageHeight = p->start; iteratorImageHeight < p->size; iteratorImageHeight++)
   {
     for(iteratorImageWidth = 0; iteratorImageWidth < p->w; iteratorImageWidth++)
     {
+      //Reset rgb values for the next pixel
       red = 0;
       green = 0;
       blue = 0;
@@ -61,14 +65,24 @@ void *threadfn(void *params)
       {
         for(iteratorFilterWidth = 0; iteratorFilterWidth < FILTER_WIDTH; iteratorFilterWidth++)
         {
-          //depending on which filter height and width, get that corresponding pixel
+          //The x_coordinate and y_coordinate will get the sorrounding pixels coordinates to calculate the red green blue values.
           x_coordinate = (iteratorImageWidth - (FILTER_WIDTH / 2) + iteratorFilterWidth + p->w) % p->w;
           y_coordinate = (iteratorImageHeight - (FILTER_HEIGHT / 2) + iteratorFilterHeight + p->h) % p->h;
+          //Sums up all of the laplacian calculations
           red += (int)p->image[y_coordinate * p->w + x_coordinate].r * laplacian[iteratorFilterHeight][iteratorFilterWidth];
           green += (int)p->image[y_coordinate * p->w + x_coordinate].g * laplacian[iteratorFilterHeight][iteratorFilterWidth];
           blue += (int)p->image[y_coordinate * p->w + x_coordinate].b * laplacian[iteratorFilterHeight][iteratorFilterWidth];
         }
       }        
+
+      /*
+       *  After the calculation for a pixel is done, we must store the calculation into the
+       *  result image depending on the value of red, green, and blue.  The data stored in to
+       *  result image are just the same values that red green and blue are unless those values
+       *  are not between 0 and 255.  If our values are outside of our range, the value inputted
+       *  into the pixel will be the value that its closest to.
+       */
+
       if(red > 255)
         p->result[iteratorImageHeight * p->w + iteratorImageWidth].r = 255;
       else if(red < 0)
@@ -90,16 +104,8 @@ void *threadfn(void *params)
       else
         p->result[iteratorImageHeight * p->w + iteratorImageWidth].b = blue;
     }
-    //printf("%d\n", iteratorImageHeight);
   }
 
-  /*For all pixels in the work region of image (from start to start+size)
-    Multiply every value of the filter with corresponding image pixel. Note: this is NOT matrix multiplication.
-   
-   //truncate values smaller than zero and larger than 255
-    Store the new values of r,g,b in p->result.
-   */
-	//pthread_barrier_wait(&our_barrier);	
 	return NULL;
 }
 
@@ -184,8 +190,6 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
     printf("NULL ERROR\n");
 	  exit(1);
   }
-(PPMPixel*)malloc(sizeof(PPMPixel) * (*height) * (*width));
-  printf("Opening file success\n");
 
   //read image format
   //check the image format by reading the first two characters in filename and compare them to P6
@@ -223,6 +227,7 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
 	    exit(1);
     }
   }
+  free(tempbuf);
 	//read image size information
     
   ungetc((int)input, fp);
@@ -257,11 +262,11 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
  Compute the elapsed time and store it in *elapsedTime (Read about gettimeofday).
  Return: result (filtered image)
  */
-PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, double *elapsedTime) {
-
+PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, double *elapsedTime) 
+{
   PPMPixel *result;
   struct timeval t1, t2;
-  gettimeofday(&t1, NULL);
+  gettimeofday(&t1, NULL); //gettimeofday for starting the image processing
   result = (PPMPixel*)malloc(sizeof(PPMPixel) * h * w);
   struct parameter params[THREADS];
   pthread_t threadArray[THREADS];
@@ -272,7 +277,9 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
     params[i].result = result;
     params[i].w = w;
     params[i].h = h;
+    //start height for the thread
     params[i].start = (h/THREADS) * i;
+    //size is our end height for a current thread
     if(i == THREADS - 1)
     {
       params[i].size = h;
@@ -281,6 +288,7 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
     {
       params[i].size = h/THREADS * (i + 1);
     }
+    //create thread with the newly made param struct
     if(pthread_create(&threadArray[i], NULL, threadfn, (void*)&params[i]) != 0)
     {
       printf("ERROR CREATING THREAD\n");
@@ -290,52 +298,41 @@ PPMPixel *apply_filters(PPMPixel *image, unsigned long w, unsigned long h, doubl
 
   for(int i = 0; i < THREADS; i++)
   {
-    //join the threads
+    //join the threads so it can wait for all the threads to finish
     pthread_join(threadArray[i], NULL);
   }
-  gettimeofday(&t2, NULL);
-  *elapsedTime = (t2.tv_sec - t1.tv_sec) + ((t2.tv_usec - t1.tv_usec)/1000000.0);
+  gettimeofday(&t2, NULL); //gettimeofday to mark the end of the image processing
+
+  *elapsedTime = (t2.tv_sec - t1.tv_sec) + ((t2.tv_usec - t1.tv_usec)/1000000.0);  //converting us from gettimeofday to s
+
 	return result;
 }
 
 
-/*The driver of the program. Check for the correct number of arguments. If wrong print the message: "Usage ./a.out filename"
-    Read the image that is passed as an argument at runtime. Apply the filter. Print elapsed time in .3 precision (e.g. 0.006 s). Save the result image in a file called laplacian.ppm. Free allocated memory.
+/* 
+ * The driver of the program. Check for the correct number of arguments. If wrong print the message: "Usage ./a.out filename"
+ * Read the image that is passed as an argument at runtime. Apply the filter. Print elapsed time in .3 precision (e.g. 0.006 s). Save the result image in a file called laplacian.ppm. Free allocated memory.
  */
 int main(int argc, char *argv[])
 {
-  //load the image into the buffer
     unsigned long int w, h;
     double elapsedTime = 0.0;
     
-    if(argc < 2)
-    {
-      printf("Usage ./imath filename\n");
-    }
+  if(argc < 2)
+  {
+    printf("Usage ./imath filename\n");
+  }
 
-    int i = 0;
-    double totalTime;
-    double averageTime;
+  //read and load the image
+  PPMPixel* img = readImage(argv[1], &w, &h);
+  //process and apply filters to the image
+  PPMPixel* finalImg = apply_filters(img, w, h, &elapsedTime);
+  printf("%.3f\n", elapsedTime);
+    
+  char* name = "laplacian.ppm";
+  writeImage(finalImg, name, w, h);
 
-    while(i < 50){
-      PPMPixel* img = readImage(argv[1], &w, &h);
-      PPMPixel* finalImg = apply_filters(img, w, h, &elapsedTime);
-      if(elapsedTime > 0){
-        totalTime += elapsedTime;
-        printf("elapsedTime: %.3f\n", elapsedTime);
-        i++;
-      }
-
-      elapsedTime = 0;
-
-      char* name = "laplacian.ppm";
-      writeImage(finalImg, name, w, h);
-
-      free(img);
-      free(finalImg);
-    }
-    averageTime = totalTime/50;
-    printf("Average time over 50 runs: %.3f\n", averageTime);
-
+  free(img);
+  free(finalImg);
 	return 0;
 }
