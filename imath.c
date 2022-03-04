@@ -119,41 +119,47 @@ void *threadfn(void *params)
  */
 void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned long int height)
 {
+  int checker = 0;
   FILE *fp;
   fp = fopen(name, "wb");
-  //printf("%ld %ld \n", width, height);
+  if(fp == NULL)
+  {
+    printf("Error making file for write.\n");
+	  exit(1);
+  }
+
+  
 
   //Writing the header block
+  checker = fprintf(fp, "P6\n %ld %ld\n 255\n", width, height);
+  if(checker < 0)
+  {
+    printf("Error writing header block.\n");
+  } 
 
-  fprintf(fp, "P6\n %ld %ld\n 255\n", width, height); 
-  //add the values by row
-  
+  //add the values into the file by row
   size_t check;
-  int counter = 0;
 
   for(int i = 0; i < (height * width); i++)
   {
-    counter++;
-    //printf("%d %d %d %d\n", image[i].r, image[i].g, image[i].b, counter);
-    
     check = fputc(image[i].r, fp);
     if(check == EOF){
       //error
-      printf("Error in writeImage1\n");
+      printf("Error in writeImage\n");
       fclose(fp);
       exit(1);
     }
     check = fputc(image[i].g, fp);
     if(check == EOF){
       //error
-      printf("Error in writeImage2\n");
+      printf("Error in writeImage\n");
       fclose(fp);
       exit(1);
     }
     check = fputc(image[i].b, fp);
     if(check == EOF){
       //error
-      printf("Error in writeImage3\n");
+      printf("Error in writeImage\n");
       fclose(fp);
       exit(1);
     }
@@ -184,10 +190,9 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
        
   FILE* fp;
   fp = fopen(filename, "r");
-    
   if(fp == NULL)
   {
-    printf("NULL ERROR\n");
+    printf("Error opening file for read.\n");
 	  exit(1);
   }
 
@@ -205,18 +210,17 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
   }
 
   //If there are comments in the file, skip them. You may assume that comments exist only in the header block.
-
-  check = fread(&input, sizeof(char), 1, fp);
+  check = fread(&input, sizeof(char), 1, fp); //take care of whitespace
   if(check == 0)
     printf("error first\n");
     
-  check = fread(&input, sizeof(char), 1, fp);
+  check = fread(&input, sizeof(char), 1, fp); //get the comment initializer
   if(check == 0)
     printf("error second\n");
 
   char* tempbuf = (char*) malloc(sizeof(char) * 1024);
     
-  while(input == '#')
+  while(input == '#') //will loop if it is a comment
   {
     //go to the next line
     fgets(tempbuf, 1024, fp);
@@ -250,14 +254,33 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
   for(int i = 0; i < ((*width) * (*height)); i++)
   {
     pix[i].r = fgetc(fp);
+    if(pix[i].r == EOF)
+    {
+      printf("Error when reading pixel values.");
+      free(pix);
+      exit(1);
+    }
     pix[i].g = fgetc(fp);
+    if(pix[i].g == EOF)
+    {
+      printf("Error when reading pixel values.");
+      free(pix);
+      exit(1);
+    }
     pix[i].b = fgetc(fp);
+    if(pix[i].b == EOF)
+    {
+      printf("Error when reading pixel values.");
+      free(pix);
+      exit(1);
+    }
   }
   fclose(fp);
   return pix;
 }
 
-/* Create threads and apply filter to image.
+/* 
+ Create threads and apply filter to image.
  Each thread shall do an equal share of the work, i.e. work=height/number of threads.
  Compute the elapsed time and store it in *elapsedTime (Read about gettimeofday).
  Return: result (filtered image)
