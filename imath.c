@@ -125,7 +125,9 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
   if(fp == NULL)
   {
     printf("Error making file for write.\n");
-	  exit(1);
+	  fclose(fp);
+    free(image);
+    exit(1);
   }
 
   
@@ -135,6 +137,9 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
   if(checker < 0)
   {
     printf("Error writing header block.\n");
+    fclose(fp);
+    free(image);
+    exit(1);
   } 
 
   //add the values into the file by row
@@ -147,6 +152,7 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
       //error
       printf("Error in writeImage\n");
       fclose(fp);
+      free(image);
       exit(1);
     }
     check = fputc(image[i].g, fp);
@@ -154,6 +160,7 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
       //error
       printf("Error in writeImage\n");
       fclose(fp);
+      free(image);
       exit(1);
     }
     check = fputc(image[i].b, fp);
@@ -161,6 +168,7 @@ void writeImage(PPMPixel *image, char *name, unsigned long int width, unsigned l
       //error
       printf("Error in writeImage\n");
       fclose(fp);
+      free(image);
       exit(1);
     }
   }
@@ -228,12 +236,12 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
     if(fread(&input, sizeof(char), 1, fp) == 0)
     {
 	    printf("ERROR\n");
+      free(tempbuf);
 	    exit(1);
     }
   }
   free(tempbuf);
 	//read image size information
-    
   ungetc((int)input, fp);
   fscanf(fp, "%ld", width);
   fscanf(fp, "%ld", height);
@@ -241,9 +249,17 @@ PPMPixel *readImage(const char *filename, unsigned long int *width, unsigned lon
   //check for max byte
   //Read rgb component.  Check if it is equal toman pthread RGB_MAX. If not, display error message.
   fscanf(fp, "%d", &fileMaxRGB);
+  if(fileMaxRGB != RGB_MAX){
+    printf("Error with RGB_MAX\n");
+    exit(1);
+  }
+
   check = fread(&input, sizeof(char), 1, fp);
-  if(check == 0)
-    printf("error first\n");
+  if(check == 0){
+    printf("Error reading RGB MAX.\n");
+    fclose(fp);
+    exit(1);
+  }
 
   //read pixel data from filename into img. The pixel data is stored in scanline order from left to right (up to bottom) in 3-byte chunks (r g b values for each pixel) encoded as binary numbers.
   PPMPixel* pix;
@@ -351,11 +367,11 @@ int main(int argc, char *argv[])
   //process and apply filters to the image
   PPMPixel* finalImg = apply_filters(img, w, h, &elapsedTime);
   printf("%.3f\n", elapsedTime);
+  free(img);
     
   char* name = "laplacian.ppm";
   writeImage(finalImg, name, w, h);
 
-  free(img);
   free(finalImg);
 	return 0;
 }
