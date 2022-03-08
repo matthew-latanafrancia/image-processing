@@ -1,0 +1,49 @@
+Activity Journal
+
+Name: Jared Dettwiller
+
+================================================================
+Start
+Estimated Time	40H
+Plan:
+Matthew and I are going to be working together on this project. Our plan is to work together simultaneously
+on the project at most times, with each of us swapping between driving and navigating every so often. We plan
+to start this project by implementing the readImage function first, and then writeImage to check and make sure
+that we can properly read the input image and then write it back out. This is our first test before we move on
+to implement the laplacian filter. In regards to the threads, we actually plan to start by making the program running
+as if it had only one thread (in other words, just a generic, non-threaded program). Once we can confirm that the program
+works for one thread, we will go back and alter it to accept any number of threads. After that, we'll implement the filter
+to work for the image given. Since we will want to make sure that it's working correctly before we start multithreading, we
+will run the filter on multiple test images to ensure that the filter is applied properly, but we know that we will use the
+formulas given in the assignment description. After we know that the filter applies properly, we will do the multithreading
+that was outlined earlier. When multithreading, we need to make sure that the threads are not racing against each other,
+so we'll need a way to make them wait until they all finish their tasks before proceeding. That should cover all the
+work needed for the program itself, and as for the experimentation, Matthew and I plan to do our experiments based on
+two different variables: image resolution, and the number of threads. We plan to do about 50 tests per variable change
+to get the best representation of each experiment. In terms of time commitment, we plan to meet for at least 3-4 hours
+each day, excluding Saturdays, in order to try and make as much progress as possible as quickly as we can. That way, we
+don't feel pressured to try and finish this project in a short amount of time.
+
+Complete
+Actual Time	30H 20M
+Observations:
+Considering that we have never worked with image reading before, this was definitely a challenging assignment. However,
+we managed to stay on top of everything because of our commitment to work 3-4 hours on this project almost every day
+of the week. Our biggest headache was in the writing portion of the assignment, where we had to take the pixel data we
+read, and then write it into a new file. This part took us longer than we had hoped for, but we got it down after about
+5 hours. The reading and threadfn functions were relatively easy compared to this, and we were finishing each method 
+relatively quickly. The threading was actually easier than expected, as we simply set each thread to cover a set amount
+of height pixels that was relatively equal to the other threads, and have it go across all the rows withing that height
+bound. We thought we needed to use barriers for it, but realized quickly that it wasn't necessary since we do the thread
+joining at the end of the filter application. The clock was giving us some trouble since we were randomly getting
+negative numbers during certain runs, but we managed to solve it by altering the scales withing the clock (Matthew
+figured that part out). For our experiment, we did two different experiments, one that changed the number of threads
+on the same picture, and one that kept the same threads and changed the resolution on the picture. We set up a while
+loop in the main function to print off the times for each trial 50 times, so that we could get more accurate data and
+averages. In our write-up, I gave a summary of how the program worked and why it does what it does. I also took the data
+we gathered, and made it into graphs to visually display our findings. Overall, I thoroughly enjoyed this assignment,
+as being able to see the end result of all that hard work was extremely satisfying. And working with Matthew on this
+helped both of us to better understand how threading works.
+
+
+================================================================
