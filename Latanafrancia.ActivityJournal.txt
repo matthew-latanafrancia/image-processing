@@ -1,0 +1,154 @@
+Activity Journal
+
+Name: Matthew Latanafrancia
+
+================================================================
+Start
+Estimated Time	60 00
+Plan:
+1. First, we are gonna figure out how to open our ppm file so that we can read the file.  We can test
+this by seeing when our file open is succesful when using fopen().  To check this, we can check the value that fopen returns and
+if it returns a non error value, than we can use it.
+2.  After opening the file, we need to be able to read our image so we should implement the readImage() function next.
+We won't be able to do any image processing without being able to read our image so this should be our immediate next step.
+3.  When reading the image, we have to first confirm the header block.  Implement this part first
+in the readImage() so the program can confirm if the file opened is a ppm file.
+4.  When reading the image, we then have to store values such as the width and height, and then we have to get the pure binary values
+that are stored within the ppm file.  These binary values are our red green blue values that we will be calculating
+over for our result image.  Store these as a PPMPixel and find out a way to keep track of them.  There should be as many PPMPixels
+as there are pixels in the actual image.
+5.  After reading the image, we should skip image processing for now and go straight to writeImage().  This is because in order to test our
+image processing later down the line, we're gonna want to be able to see our output that we have for when we apply the filters.  To make sure that
+writing the image works as expected, we can just make it write the same image that we are reading from readImage().  i.e, copy the image that we are 
+using as a test case for now.
+6.  Writing the image is almost the same as reading the image, where we can use fwrite as said in the hint.  Since the header block is mostly the same,
+that won't be too hard too since the only thing that needs to be changed on the header block is the width and height and those values
+should be a parameter to the writeImage() function to begin with.
+7.  After reading and writing our image, our next plan of attack is making our thread function work.  First we should figure out how to use
+pthread to get our thread into the thread function that we will be using to apply our filters.  This will be implemented in the
+apply_filters() function.
+8.  We must also make sure that we are having correct parameters when we are using our threads.  This means that we must use
+the given parameter struct at the top of our code.  These structs will have data for each threads run through the program.  For now, we should only
+keep in mind that we will be running this single threadedly.  We will implement multi threading later.  These parameter structures should be passed
+into the thread function casted as a void*.
+9.  After getting our data into the thread function using a thread, we can then implement our image processing.  We know that in order to calculate our edge
+detection, we have to use our laplacian filter which is given to us in the threadfn().
+
+When processing the image we should...
+Multiply surrounding pixels and the current pixel with their corresponding laplacian filter value.
+Sum all of these values as the color value (that means red, green, and blue have separate calculations)
+If this value in the end is greater than 255, make the value 255.
+If this value in the end is less than 0, make the value 0.
+If this value is in between 0 and 255, we can keep it the same value.
+We have to take care of these cases because our available rgb values are only
+between 0 and 255.
+
+After implementing our function, test the image processing and make sure that everything works fine by testing our program with the test ppm files.
+We can see our output using our now implemented writeImage() function.
+
+10.  After confirming apply_filters() works, make a timer in the apply_filters() function.
+11.  Run our concurrency experiment
+12. Clean up our code (get rid of commented code, add comments explaining the code, memory leaks)
+
+Testing cases:
+
+readImage() and writeImage():
+readImage() and writeImage() can be tested both at the same time when both of these functions are finished being made.  We won't really know if our
+output of readImage() is going to be correct unless we can visualize what are pixels will look like which is exactly what writeImage() will do.  So,
+once both of these functions are done, we can read our image, and get those pixel values that we read and basically copy it into a new
+PPM file.  If the PPM file that is made from writeImage() looks like the same as the image that we inputted into the
+program, then read and write image should be working.
+
+readImage() header block:
+Our header block is also something that needs to be tested.  When we write images, we can add multiple comments to our new ppm file, and then test
+our functions with the newly made PPM file with multiple comments.  To test width, height, RGB max value, and the magic ppm number, we can print out the
+values that we get from the ppm file and see if the values seem to be right.  If these values are right, then we can move on.
+
+apply_filters() and threadfn():
+This is our main threading function that will maek all of our threads.  We want to make sure that we are making the correct number of threads so during the testing phase,
+we can print out when each thread starts so we know how many threads are being made in a given run in the program.  Since THREADS is a global variable,
+we can easily test our function with multiple threading values by changing this value.
+After testing that our threading works, to check if our threadfn() is working, the easiest way to test this is the write the result from threadfn()
+into a new ppm file using our writeImage() function so that we can see if our edge detection appears to be working.  If it does appear to be working when
+looking at the outputted ppm file, then these functions should be working as expected.
+
+Complete
+Actual Time	30 50
+Observations:
+(Lessons learned, problems encountered, obstacles overcome, etc.)
+
+Our group work was managed in a GitHub repository and we would meet almost daily to code together so we could both be up to date with what is going
+on in the project.  For most of the implementation of our image processor, we would be programming together with one of us driving and the other one
+overlooking and giving an extra brain to the coding implementation.  In order to make sure our work on the project in this part of the project
+was to be equal, we would switch being drivers day by day.  Doing this allowed us to have a basic understanding of how the program would work
+before we would actually be able to split the work between each other outside of meeting time.
+
+When we got comfortable with how the image processing would work, we split the work between writeImage() and readImage().  Because they were pretty
+similar, we thought this would be a good idea for both of us to learn more about opening and reading and writing from a file.  Doing this
+would also make sure that we understand how the PPMPixel array would work since that was once of the parts of the program that we had to
+think a little more about than some other parts of the program.
+Whenever we are working separately and can't solve a bug by the next day, we would talk it over and explain whats happening to each other and would
+be able to solve the bug by debugging the function together.  Working in separate GitHub branches also made working separately a lot easily because
+it made it easier to merge our code together.
+
+Though we worked on the threadfn() and the apply_filters() functions together, Jared had more ofan understanding and more of a hand in the
+apply_filters() where we would split and do all the threading for the program.  My part of the threading happened in threadfn() where it did all of
+the image processing with the threads.  In order to do that, we had to collaborate with each other how the structure from the apply_filters is gonna work
+and what values are going to be pushed into the thread function.  Once I knew that, I was able to code the thread function and image processing using
+the hints that were given to us in the project information.
+
+With the code of the program, we mostly collaborated and were both present for the most part when either one of us were coding.
+
+The experiment was another part of the project where we had to collaborate.  We sectioned off the experiment write up into groups of work we would
+want to have for our experiment.  This consisted of experiment explanation, project summary, conclusion, and the graphs and tables for our experiment data.
+My job for the experiment was doing most of the write up (Jared did the project summary portion of our experiment).  I was working on outlining how our
+experiment would work and what this experiment should show us.  After getting all the table data from Jared, I was able to write out the last part of the experiment.
+Before typing up the conclusion, we talked about both of our conclusions and we outlined what the conclusion should state.
+
+First off, I learned more how to work smoothly in a pair/team setting.  Working in a github repository again after a pretty long while was really refreshing
+since I haven't used github in a pretty long time.  Re-learning the commands and how to branch out your repository to me helped me feel more comfortable using git
+and I think I'm really excited to work on more projects with other people because of that.  I do think it's a useful tool to use since it makes collaboration
+and taking notes of each change in your program a lot easier.  Especially because if you mess something up, you can always go back to a previous push
+in the repository.
+Even when using the github repository, we still mostly made sure to implement our code when both of us were present and it helped me learn how to plan out
+the responsibilities for each person in a group.  Even though our group was only a pair of people, it still gave me experience in visualizing how to
+effectively split implementing code and work on a project whilst still learning the material in the class and having an overall good understandning of the
+program as a whole.
+
+Another thing that I learned about was just threading in general.  Obviously I would know a bit about threading just because of our classes and we would talk
+about threading functions.  Since I'm more of someone that learns and remembers things by using them or doing them, seeing how threading was working in this project and seeing
+how to implement multithreading into our program was such an interesting but intriguing part of the assignment since it's basically multiple processes going at the same time.
+I now better understand the difference between joining all the threads and placing a barrier in a thread function and overall, everything that we used
+in threading in our project made sense to me for the most part.
+We also learned how to keep track of our racing conditions and how to make sure that we wouldn't have any problems with racing conditions.
+
+The last big lesson I learned is that in processes like this, you tend to use a pretty good amount of time and you tent to use a pretty good amount of memory.
+I think one of the hardest things about this assignment was figuring out how to implement all of our RGB bytes and visit all of the pixels that we needed to
+without storing more than the amount of pixels.  Once we were able to optimize that using the height and width in our readImage() function, it made
+memory allocating a lot easier.
+
+We also learned more such as how to read and write into a file using functions like fputc() and fgetc().  We did use other functions but I wanted to point
+out those two specifically because we learned that they can be used to read the pure binary pixel values in the PPM files information.
+
+We had to overcome many obstacles.  First was the previously stated pure binary pixel values.  We were trying to use fread() to read out pure binary values
+but we were having problems because instead of getting a value that was in our range from 0 to 255, we wouldn't be getting integer values at all
+returned in to our value of fread().  For some reason we seemed to get glitchy off scope characters that we obviously couldn't use.  We ended up discovering
+fgetc() that got the character value and we were able to put that character and put it into our PPMPixel.
+We later learned that we didn't read the file in binary which when we tested it, fread() was now reading the pixels.  However, since we already implemented
+what we had, we decided to keep it the way we have it now.
+
+We also had this same problem with writeImage() but this time with writing the image.  The bug fix was similar where we just had to use fputc() instead of fwrite().
+
+Another problem we had to overcome which was really confusing us was the timer in our program.  What was confusing us is that when we would
+add more threads into the image processing part of our function, our function would actually get slower instead of faster.  Since we expected our
+output time to be less when we have multiple threads because of our threading logic, we were confused about it and spent a pretty large
+chunk of time making sure our code was ok and more specifically making sure the timer was running correctly and how we would expect it to run.
+We later found out that the problem was in our threading function where part of our calculation wasn't being run optimally which was slowing down each thread.
+Once we edited the code in our thread function to be more efficient, we were able to now then confirm that the time was changing to more of what we expected
+when we thread.
+
+Doing this project was a lot more enjoyable since I was able to work with problems in the project with somebody else instead of struggling on it alone.  
+It also helped me stay organized working on this project.
+
+
+================================================================
